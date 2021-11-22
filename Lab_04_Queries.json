@@ -1,0 +1,192 @@
+rsconf={
+    _id : "rspoli",
+    members: [
+            { _id : 1, host : "polimongodb1:27017", priority:3 },
+            { _id : 2, host : "polimongodb2:27017", priority:2 },
+            { _id : 3, host : "polimongodb3:27017", priority:1 } 
+        ]
+}
+
+
+db.restaurants.find(
+    {cost:"medium"},
+    {name:1}
+).pretty()
+
+
+db.restaurants.find(
+{
+    $or:[
+        {cost:"medium"},
+        {cost:"low"}
+    ],
+    review:{$gt:4}
+},
+{
+    name:1,maxPeople:1,_id:0
+}
+).pretty()
+
+
+db.restaurants.find(
+{
+    maxPeople:{$gt:5},
+    $or:[
+        {
+            $or:[
+                {tag:"italian"},
+                {tag:"japanese"}
+            ],
+            $or:[
+                {cost:"medium"},
+                {cost:"high"}
+            ]
+        },
+        {
+            tag:{$nin:["italian"]},
+            tag:{$nin:["japanese"]},
+            review:{$gt:4.5}
+        }
+    ]
+},
+{
+    name:1, "contact.phone":1, _id:0
+}
+).pretty()
+
+
+db.restaurants.aggregate(
+    {
+        $group:{
+            _id:null,
+            avg_review:{$avg:"$review"}
+        }
+    }
+)
+
+
+db.restaurants.find(
+    {
+        review:{$gt:4.5},
+        maxPeople:{$gt:5}
+    },
+    {}
+).count()
+
+
+db.restaurants.createIndex({location:"2dsphere"})
+db.restaurants.findOne(
+    {
+        location:{
+            $near:{
+                $geometry:{
+                    type:"Point",
+                    coordinates:[45.0644,7.6598]
+                }
+            }
+        }
+    },
+    {name:1,_id:0}
+)
+
+
+db.restaurants.find(
+    {
+        location:{
+            $near:{
+                $geometry:{
+                    type:"Point",
+                    coordinates:[45.0623, 7.6627]
+                },
+                $maxDistance:500
+            }
+        }
+    },
+    {}
+).count()
+
+
+db.restaurants.updateMany(
+    {
+        tag:"italian"
+    }, 
+    {
+        $addToSet:{
+            tag:"pizza"
+        }
+    }
+)
+
+
+db.restaurants.updateMany(
+    {
+        tag:"fastfood"
+    }, 
+    {
+        $inc:{
+            review:-0.2
+        }
+    }
+)
+
+
+db.restaurants.aggregate([
+    {
+        $match: { 
+            review:{$gt: 3} 
+            } 
+    },
+    {
+        $unwind:"$tag"
+    },
+    {
+        $group:{
+            _id:"$tag",
+            tagcount:{$sum:1}
+        }
+    },
+    {
+        $match: { 
+            tagcount:{$gt: 1} 
+            } 
+    }
+])
+
+
+db.restaurants.aggregate([
+    {
+        $group:{
+            _id:"$cost",
+            max_review_rate:{$max:"$review"},
+            min_review_rate:{$min:"$review"},
+            avg_review_rate:{$avg:"$review"},
+            restaurants_count:{$sum:1}
+        }
+    },
+    {
+        $sort:{restaurants_count : -1}
+    }
+])
+
+
+db.restaurants.aggregate([
+    {
+        $sort:{maxPeople : 1}
+    },
+    {
+        $group:{
+            _id:null,
+            maxPeople_list:{$push:"$maxPeople"}
+        }
+    },
+    {
+        $project:{
+            "median":{$arrayElemAt:[
+                "$maxPeople_list",
+                {$floor:{
+                    $multiply:[0.5,{$size:"$maxPeople_list"}]}
+                }
+            ]}
+        }
+    }
+])

@@ -69,30 +69,3 @@ FROM CUSTOMER C, SALES S
 WHERE  C.CustomerID = S.CustomerID
 AND S.TimeID = T.TimeID
 GROUP BY Region, Month
-
-
-
-
-
-DMV_Exam2021_02_01_draft_sol.pdf
-9)
-SELECT SongID, Month, SUM(NumberOfStreaming) AS TotStreaming,
-    SUM(SUM(NumberOfStreaming)) OVER(PARTITION BY Year
-                                    ORDER BY Month ASC
-                                    ROWS UNBOUNDED PRECEDING) AS CumulativeStreaming,
-    RANK() OVER(PARTITION BY Album
-                ORDER BY SUM(NumberOfStreaming) DESC) AS RankStreamingInAlbum
-FROM MusicStreaming MS, Song S
-WHERE MS.SongID = S.SongID
-GROUP BY SongID, Month, Year, Album
-
-10)
-SELECT SongID, Province,
-    SUM(NumberOfLikes) / COUNT(DISTINCT Month),
-    100 * SUM(NumberOfLikes) / SUM(SUM(NumberOfLikes)) OVER(PARTITION BY SongID, Country),
-    SUM(SUM(NumberOfLikes)) OVER(PARTITION BY Album, Province)
-FROM MusicStreaming MS, TIME T, Song S, UserLocation L
-WHERE S.SongId = MS.SongId 
-AND L.UserLocationId = MS.PlatformId 
-AND T.TimeId = MS.TimeId
-GROUP BY SongID, Province

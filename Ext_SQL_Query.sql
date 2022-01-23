@@ -69,3 +69,81 @@ FROM CUSTOMER C, SALES S
 WHERE  C.CustomerID = S.CustomerID
 AND S.TimeID = T.TimeID
 GROUP BY Region, Month
+
+
+
+
+
+HOTEL
+1)
+SELECT State, Month, Free, Reserved, Unavailable
+FROM ROOMS R, TIME T, HOTEL H
+WHERE R.TimeID = T.TimeID
+AND H.HotelID = R.HotelID
+AND T.Year = 2005
+GROUP BY State, Month
+
+2)
+SELECT State, Reserved/Total * 100,
+    RANK() OVER(ORDER BY Reserved/Total * 100 DESC) AS RankRes
+FROM ROOMS R, TIME T, HOTEL H
+WHERE R.TimeID = T.TimeID
+AND H.HotelID = R.HotelID
+AND T.Year = 2005
+GROUP BY State
+ORDER BY RankRes ASC
+
+3)
+SELECT State, Month, SUM(Income) AS TotalIncome, 
+    SUM(SUM(Income)) OVER(PARTITION BY HotelID
+                          ORDER BY Month
+                          ROWS UNBOUNDED PRECEDING) AS Total_Month_Income
+FROM ROOMS R, TIME T, HOTEL H
+WHERE R.TimeID = T.TimeID
+AND H.HotelID = R.HotelID
+AND T.Year = 2005
+AND H.Category = 4
+GROUP BY State, Month
+
+4)
+SELECT State, Year, SUM(Income) AS TotalIncome
+FROM ROOMS R, TIME T, HOTEL H
+WHERE R.TimeID = T.TimeID
+AND H.HotelID = R.HotelID
+AND T.Holiday = True
+GROUP BY State, Year
+
+5)
+SELECT HotelID, SUM(Income) AS TotalIncome
+FROM ROOMS R, TIME T, HOTEL H, FEATURE F
+WHERE R.TimeID = T.TimeID
+AND H.HotelID = R.HotelID
+AND T.Year = 2005
+AND R.FeatureID = F.FeatureID
+AND F.satelliteTV = 1
+AND F.whirlpoolBath = 1
+GROUP BY HotelID
+
+
+
+
+
+STOREHOUSE
+1)
+SELECT StoreHouseID, SUM(TotalValue) AS TotalValue, Date,
+    AVG(SUM(TotalValue)) OVER(PARTITION BY StoreHouseID 
+                            ORDER BY Date ASC 
+                            RANGE BETWEEN INTERVAL "6" day PRECEDING AND CURRENT ROW)
+FROM STOREHOUSE S, TIME T, PRODUCTS P
+WHERE T.Year = 2003
+AND T.Trimester = 1
+AND S.City = "Turin"
+GROUP BY S.StoreHouseID, Date
+
+2)
+SELECT 
+FROM STOREHOUSE S, TIME T, SURFACE SF
+WHERE SF.StoreHouseID = S.StoreHouseID
+AND T.TimeID = SF.TimeID
+AND T.Year = 2004
+GROUP BY City, Date

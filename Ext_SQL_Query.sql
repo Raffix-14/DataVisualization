@@ -141,9 +141,40 @@ AND S.City = "Turin"
 GROUP BY S.StoreHouseID, Date
 
 2)
-SELECT 
+SELECT City, Date, (SUM(m2free) / SUM(m2tot) * 100) AS FreePercentage,
+    RANK() OVER(ORDER BY (SUM(m2free) / SUM(m2tot) * 100) ASC) AS RankPercentage
 FROM STOREHOUSE S, TIME T, SURFACE SF
 WHERE SF.StoreHouseID = S.StoreHouseID
 AND T.TimeID = SF.TimeID
 AND T.Year = 2004
 GROUP BY City, Date
+
+3)
+SELECT StoreHouseID, Date, (m2free / m2tot * 100) AS FreePercentage
+FROM TIME T, STOREHOUSE S
+WHERE T.TimeID = S.TimeID
+AND T.Semester = 1/2004
+GROUP BY StoreHouseID, Date
+
+4)
+SELECT StoreHouseID, Month, (SUM(TotalValue) / COUNT(DISTINCT Date)) AS AverageDailyIncome
+FROM TIME T, STOREHOUSE S
+WHERE T.TimeID = S.TimeID
+AND T.Year = 2003
+GROUP BY StoreHouseID, Month
+
+5)
+SELECT Region, (SUM(TotalValue) / COUNT(DISTINCT Date)) AS AverageDailyIncome
+FROM TIME T, STOREHOUSE S
+WHERE T.TimeID = S.TimeID
+AND T.Year = 2003
+GROUP BY Region
+
+6)
+SELECT Region, Month
+    AVG(SUM(m2free) / SUM(m2tot)) OVER(PARTITION BY Region, Month) AS AverageDailyFreePercentage
+FROM TIME T, STOREHOUSE S, SURFACE SF
+WHERE T.TimeID = S.TimeID
+AND SF.StoreHouseID = S.StoreHouseID
+AND T.Year = 2004
+GROUP BY Region, Month

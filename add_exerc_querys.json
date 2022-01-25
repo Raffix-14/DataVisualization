@@ -1,0 +1,97 @@
+1.
+
+A)
+db.properties.find(
+{
+    amenities:"WiFi",
+    amenities:"TV"
+},
+{name:1,url:1,price:1,id:0}
+).sort({price:1})
+
+C)
+db.properties.aggregate([
+    {
+        $match:{
+            property_type:"House"
+        }
+    },
+    {
+        $sort:{
+            price:1
+        }
+    }
+    {
+        $group:{
+            _id:null
+            priceList:{$push:"$price"}
+        }
+    },
+    {
+        $project:{
+            median:$arrayElemAt:{[
+                "$priceList",
+                $floor:{
+                    $multiply:{
+                        [ 0.5, $size:{
+                            $priceList
+                            }
+                        ]}
+                    }
+                ]}
+        }
+    }
+])
+
+
+
+2.
+
+A)
+db.exams.aggregate([
+    {
+        $unwind:"$scores.type"
+    },
+    {
+        $group:{
+            _id:"$scores.type",
+            avg:{$avg:"$scores.score"},
+            min:{$min:"$scores.score"},
+            max:{$max:"$scores.score"},
+            testTaken:{sum:1}
+        }
+    },
+    {
+        $match:{
+            testTaken:{$gt:50}
+        }
+    },
+    {
+        $project:{
+            _id:1,
+            avg:1,
+            min:1,
+            max:1
+        }
+    }
+])
+
+B)
+db.exams.aggregate([
+    {
+        $unwind:"$scores"
+    },
+    {
+        $match:{
+            "$scores.type":"exam",
+            "$scores.score":{$gte:60}
+        }
+    },
+    {
+        $group:{
+            _id:"$class_id",
+            avg:{$avg:"$scores.score"},
+            numberExam:{sum:1}
+        }
+    }
+])

@@ -29,7 +29,7 @@ db.properties.aggregate([
     },
     {
         $project:{
-            median:$arrayElemAt:{[
+            median:{$arrayElemAt:[
                 "$priceList",
                 $floor:{
                     $multiply:{

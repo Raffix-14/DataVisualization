@@ -9,6 +9,7 @@ FROM MusicStreaming MS, Song S
 WHERE MS.SongID = S.SongID
 GROUP BY SongID, Month, Year, Album
 
+
 10)
 SELECT SongID, Province,
     SUM(NumberOfLikes) / COUNT(DISTINCT Month),
@@ -21,6 +22,7 @@ AND T.TimeId = MS.TimeId
 GROUP BY SongID, Province
 
 
+11)
 db.shops.find(
     {   
         "address.city":"Rome",
@@ -33,9 +35,11 @@ db.shops.find(
     {name:1, _id:0}
 )
 
+
+12)
 db.shops.aggregate([
     {
-        $unwind:"reviews"
+        $unwind:"$reviews"
     },
     {
         $group:{

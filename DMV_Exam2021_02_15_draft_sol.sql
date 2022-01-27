@@ -1,3 +1,29 @@
+9)
+SELECT plantSpecies, month,
+    SUM(numberOfPlants) / COUNT(DISTINCT TimeID) AS A,
+    100 * SUM(numberOfPlants) / SUM(SUM(numberOfPlants)) OVER(PARTITION BY month, genus) AS B,
+    SUM(SUM(numberOfPlants)) OVER(PARTITION BY plantId, plantSpecies, year ORDER BY month ASC ROWS UNBOUNDED PRECEDING)
+FROM GARDENS G, TIME T, PLANT P
+WHERE G.TimeID = T.TimeID
+AND G.PlantID = P.PlantID
+GROUP BY plantID, plantSpecies, month, genus, year
+
+
+10)
+SELECT GardenCenterId, genus,
+    SUM(revenue) / SUM(numberOfPlants) AS A,
+    SUM(revenue) OVER(PARTITION BY family, GardenCenterId) AS B,
+    RANK() OVER(PARTITION BY province, genus ORDER BY SUM(revenue) DESC) AS C
+FROM GARDENS G, GARDENCENTERS GC, PLANT P
+WHERE GC.GardenCenterId = G.GardenCenterId
+AND G.PlantID = P.PlantID
+AND GS.parking = True
+GROUP BY GardenCenterId, genus, family, province
+
+
+
+
+
 11)
 db.temperatures.updateOne(
     {
